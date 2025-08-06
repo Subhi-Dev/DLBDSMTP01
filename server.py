@@ -22,10 +22,9 @@ def predict_weather_endpoint():
     Flask endpoint to predict weather based on JSON input.
     Expected JSON format:
     {
-      "precipitation": 0.0,
-      "temp_max": 10.0,
-      "temp_min": 2.8,
-      "wind": 2.0
+      "temperature": 0.0,
+      "humidity": 10.0,
+      "sound_volume": 2.8
     }
     """
     if loaded_model is None:
@@ -38,25 +37,24 @@ def predict_weather_endpoint():
         if not data:
             return jsonify({"error": "Invalid JSON input."}), 400
 
-        precipitation = data.get('precipitation')
-        temp_max = data.get('temp_max')
-        temp_min = data.get('temp_min')
-        wind = data.get('wind')
+        temperature = data.get('temperature')
+        humidity = data.get('humidity')
+        sound_volume = data.get('sound_volume')
 
-        if None in [precipitation, temp_max, temp_min, wind]:
-            return jsonify({"error": "Missing one or more required features: precipitation, temp_max, temp_min, wind"}), 400
+        if None in [temperature, humidity, sound_volume]:
+            return jsonify({"error": "Missing one or more required features: temperature, humidity, sound_volume"}), 400
 
         #Pandas DataFrame
-        new_data = pd.DataFrame([[precipitation, temp_max, temp_min, wind]],
-                                columns=['precipitation', 'temp_max', 'temp_min', 'wind'])
+        new_data = pd.DataFrame([[temperature, humidity, sound_volume]],
+                                columns=['temperature', 'humidity', 'sound_volume'])
 
         new_data_scaled = loaded_scaler.transform(new_data)
 
         prediction_encoded = loaded_model.predict(new_data_scaled)
 
-        predicted_weather = loaded_label_encoder.inverse_transform(prediction_encoded)
+        predicted_inspection_due = loaded_label_encoder.inverse_transform(prediction_encoded)
 
-        return jsonify({"predicted_weather": predicted_weather[0]})
+        return jsonify({"predicted_inspection_due": "Yes" if int(predicted_inspection_due[0]) == 1 else "No"})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
